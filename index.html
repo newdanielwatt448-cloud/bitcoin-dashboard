@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bitcoin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #181b20;
+      --card-2: #22262d;
+      --input: #262b33;
+      --border: #353b45;
+      --text: #f3f4f6;
+      --muted: #a8b0bd;
+      --accent: #f59e0b;
+      --accent-hover: #fbbf24;
+      --positive: #4ade80;
+      --negative: #f87171;
+      --positive-glow: rgba(74, 222, 128, 0.22);
+      --negative-glow: rgba(248, 113, 113, 0.18);
+      --bar-bg: #2b3139;
+      --bar-fill: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 24px;
+      background: linear-gradient(180deg, #0b0d10 0%, #11151b 100%);
+      color: var(--text);
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 10px 0 6px;
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 2.8px;
+      text-transform: uppercase;
+      color: #c8a75a;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: clamp(34px, 6vw, 56px);
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1.02;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 20%, #fbbf24 50%, #f59e0b 80%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 20px 50px rgba(245, 158, 11, 0.25), 0 0 40px rgba(251, 191, 36, 0.15);
+      filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.2));
+    }
+
+    .hero-subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 15px;
+      letter-spacing: 0.2px;
+    }
+
+    h3, h4 {
+      margin-top: 0;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .right-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%), var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  min-width: 0;
+  backdrop-filter: blur(6px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 158, 11, 0.22);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(245, 158, 11, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      font-size: 16px;
+    }
+
+    .stat-item {
+      background: var(--card-2);
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      line-height: 1.5;
+      min-width: 0;
+    }
+
+    .stat-item strong {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+
+    input {
+      background: var(--input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+
+    input::placeholder {
+      color: #8d96a5;
+    }
+
+    button {
+      background: var(--accent);
+      color: #111;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .buy-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .buy-grid .full-row {
+      grid-column: 1 / -1;
+    }
+
+    .quick-targets {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .quick-target-btn {
+      margin-top: 0;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+    }
+
+    .cagr-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cagr-output-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .cagr-note {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .transaction {
+      background: var(--card-2);
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .transaction-left {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .transaction-left span:last-child {
+      word-break: break-word;
+    }
+
+    .transaction-date {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .delete-btn {
+      background: none;
+      color: var(--negative);
+      border: none;
+      cursor: pointer;
+      width: auto;
+      margin: 0;
+      padding: 0 0 0 10px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .section-title {
+      margin: 0 0 12px 0;
+    }
+
+    .targets-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .target-box {
+      background: var(--card-2);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .target-box h4 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+    }
+
+    .target-output {
+      margin-top: 12px;
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .positive {
+      color: var(--positive);
+      font-weight: 700;
+      text-shadow: 0 0 10px var(--positive-glow);
+    }
+
+    .negative {
+      color: var(--negative);
+      font-weight: 700;
+      text-shadow: 0 0 10px var(--negative-glow);
+    }
+
+    .neutral {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .milestone-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .milestone-item {
+      background: var(--card-2);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .milestone-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .milestone-title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .milestone-details {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: var(--bar-bg);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      border-radius: 999px;
+      transition: width 0.9s ease;
+    }
+
+    .milestone-complete {
+      color: var(--positive);
+      font-weight: 700;
+    }
+
+    .live-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6b7280;
+      margin-right: 8px;
+      vertical-align: middle;
+      box-shadow: 0 0 0 rgba(74, 222, 128, 0);
+      transition: background 0.2s ease;
+    }
+
+    .live-indicator.live {
+      background: #4ade80;
+      animation: livePulse 1.8s infinite;
+    }
+
+    .live-indicator.error {
+      background: #f87171;
+      animation: none;
+    }
+
+    .live-indicator.loading {
+      background: #f59e0b;
+      animation: pulseLoading 1.2s infinite;
+    }
+
+    @keyframes livePulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.45);
+      }
+      70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+      }
+    }
+
+    @keyframes pulseLoading {
+      0% { opacity: 0.45; }
+      50% { opacity: 1; }
+      100% { opacity: 0.45; }
+    }
+
+    .sentiment-box {
+      background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%), var(--card-2);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+      transition: all 0.3s ease;
+    }
+
+    .sentiment-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .sentiment-badge {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .sentiment-badge.below {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15));
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    .sentiment-badge.near {
+      background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(234, 88, 12, 0.15));
+      color: #fed7aa;
+      border: 1px solid rgba(251, 146, 60, 0.4);
+      box-shadow: 0 0 20px rgba(251, 146, 60, 0.2);
+    }
+
+    .sentiment-badge.above {
+      background: linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(34, 197, 94, 0.15));
+      color: #86efac;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+    }
+
+    .sentiment-details {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .sentiment-details strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .chart-wrap {
+      height: 420px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    @media (max-width: 1050px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 14px;
+      }
+
+      .stats,
+      .buy-grid,
+      .quick-targets,
+      .cagr-grid,
+      .cagr-output-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .transaction {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .chart-wrap {
+        height: 320px;
+      }
+
+      .hero-title {
+        letter-spacing: -0.8px;
+      }
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bitcoin Dashboard">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="hero">
+    <h1 class="hero-title">Bitcoin Dashboard</h1>
+    <div class="hero-subtitle">Track your BTC position, performance, targets, and long-term growth in one place.</div>
+  </div>
+
+  <div class="dashboard">
+
+    <div class="card full-width">
+      <div class="stats">
+        <div class="stat-item">Total BTC<br><strong><span id="totalBTC">0</span></strong></div>
+        <div class="stat-item">Total Invested<br><strong>£<span id="totalGBP">0</span></strong></div>
+        <div class="stat-item">Total Fees Paid<br><strong>£<span id="totalFees">0</span></strong></div>
+        <div class="stat-item">Avg Buy Price<br><strong>£<span id="avgPrice">0</span></strong></div>
+        <div class="stat-item">Current BTC Price (GBP)<br><strong>£<span id="currentPrice">Loading...</span></strong></div>
+        <div class="stat-item">Current BTC Price (USD)<br><strong>$<span id="currentPriceUSD">Loading...</span></strong></div>
+        <div class="stat-item">Portfolio Value<br><strong>£<span id="portfolio">0</span></strong></div>
+        <div class="stat-item">
+          Profit / Loss<br>
+          <strong>£<span id="profit" class="neutral">0</span> (<span id="percent" class="neutral">0</span>%)</strong>
+        </div>
+        <div class="stat-item">
+          API Status<br>
+          <strong>
+            <span class="live-indicator" id="liveIndicator"></span>
+            <span id="apiStatus">Waiting...</span>
+          </strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="left-stack">
+        <div class="card">
+          <h3 class="section-title">Add Buy</h3>
+          <div class="buy-grid">
+            <input type="date" id="buyDate" />
+            <input type="number" id="price" placeholder="BTC Buy Price (£)" />
+            <input type="number" id="invested" placeholder="Amount Invested (£)" />
+            <input type="number" id="fee" placeholder="Fee (£)" step="0.01" />
+            <button class="full-row" onclick="addTransaction()">Add Buy</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title">Potential Profits</h3>
+
+          <div class="quick-targets">
+            <button class="quick-target-btn" onclick="applyQuickTarget(100000)">£100k</button>
+            <button class="quick-target-btn" onclick="applyQuickTarget(150000)">£150k</button>
+            <button class="quick-target-btn" onclick="applyQuickTarget(200000)">£200k</button>
+            <button class="quick-target-btn" onclick="applyQuickTarget(250000)">£250k</button>
+            <button class="quick-target-btn" onclick="applyQuickTarget(500000)">£500k</button>
+            <button class="quick-target-btn" onclick="clearTargets()">Clear</button>
+          </div>
+
+          <div class="targets-grid">
+            <div class="target-box">
+              <h4>Target 1</h4>
+              <input type="number" id="target1" placeholder="BTC target price (£)" />
+              <div class="target-output">
+                Value: £<span id="target1Value">0</span><br />
+                Profit: £<span id="target1Profit" class="neutral">0</span><br />
+                Return: <span id="target1Percent" class="neutral">0</span>%
+              </div>
+            </div>
+
+            <div class="target-box">
+              <h4>Target 2</h4>
+              <input type="number" id="target2" placeholder="BTC target price (£)" />
+              <div class="target-output">
+                Value: £<span id="target2Value">0</span><br />
+                Profit: £<span id="target2Profit" class="neutral">0</span><br />
+                Return: <span id="target2Percent" class="neutral">0</span>%
+              </div>
+            </div>
+
+            <div class="target-box">
+              <h4>Target 3</h4>
+              <input type="number" id="target3" placeholder="BTC target price (£)" />
+              <div class="target-output">
+                Value: £<span id="target3Value">0</span><br />
+                Profit: £<span id="target3Profit" class="neutral">0</span><br />
+                Return: <span id="target3Percent" class="neutral">0</span>%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title">Transactions</h3>
+          <div class="muted">Fees are included in total invested and average buy price.</div>
+          <div id="transactions"></div>
+        </div>
+      </div>
+
+      <div class="right-stack">
+        <div class="sentiment-box">
+          <div class="sentiment-label">Price Allocation</div>
+          <div class="sentiment-badge" id="sentimentBadge">Loading</div>
+          <div class="sentiment-details">
+            Current: <strong>£<span id="sentimentCurrent">0</span></strong><br>
+            Average Cost: <strong>£<span id="sentimentAvg">0</span></strong><br>
+            <span id="sentimentDiff" style="color: var(--muted);"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title">BTC Milestones</h3>
+          <div class="milestone-list" id="milestoneList"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title">CAGR / Projection</h3>
+
+          <div class="cagr-grid">
+            <input type="number" id="cagrRate" placeholder="Expected CAGR (%)" value="30" />
+            <input type="number" id="cagrYears" placeholder="Years" value="10" />
+            <input type="number" id="monthlyContribution" placeholder="Monthly Contribution (£)" value="1000" />
+            <input type="number" id="startingOverride" placeholder="Starting Value Override (£) - optional" />
+          </div>
+
+          <div class="cagr-output-grid">
+            <div class="stat-item">Starting Value<br><strong>£<span id="cagrStartingValue">0</span></strong></div>
+            <div class="stat-item">Projected Value<br><strong>£<span id="cagrProjectedValue">0</span></strong></div>
+            <div class="stat-item">Total Contributed<br><strong>£<span id="cagrContributed">0</span></strong></div>
+            <div class="stat-item">Projected Growth<br><strong>£<span id="cagrGrowth" class="positive">0</span></strong></div>
+          </div>
+
+          <div class="cagr-note">
+            Uses your current portfolio value by default. If you enter a Starting Value Override, that will be used instead.
+            Monthly contributions are assumed to be added monthly and growth is spread monthly from your annual CAGR estimate.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full-width">
+      <h3 class="section-title">Price Chart</h3>
+      <div class="chart-wrap">
+        <canvas id="btcChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let transactions = JSON.parse(localStorage.getItem("btcData")) || [];
+    let btcChart;
+    let latestBTCPrice = 0;
+    let latestBTCPriceUSD = 0;
+
+    const milestones = [0.1, 0.25, 0.5, 1, 2, 5];
+
+    function formatMoney(value, decimals = 2) {
+      return Number(value).toLocaleString("en-GB", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function formatBTC(value, decimals = 5) {
+      return Number(value).toLocaleString("en-GB", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function formatPercent(value, decimals = 2) {
+      return Number(value).toLocaleString("en-GB", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    function formatMilestoneTarget(value) {
+      if (value < 1) return value.toFixed(2);
+      return Number(value).toLocaleString("en-GB", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
+    }
+
+    function getTotals() {
+      let totalBTC = 0;
+      let totalGBP = 0;
+      let totalFees = 0;
+
+      transactions.forEach(t => {
+        const fee = Number(t.fee || 0);
+        totalBTC += t.btc;
+        totalGBP += t.gbp + fee;
+        totalFees += fee;
+      });
+
+      return { totalBTC, totalGBP, totalFees };
+    }
+
+    function getCurrentPortfolioValue() {
+      const { totalBTC } = getTotals();
+      if (!latestBTCPrice || latestBTCPrice <= 0) return 0;
+      return totalBTC * latestBTCPrice;
+    }
+
+    function setValueState(element, value) {
+      element.classList.remove("positive", "negative", "neutral");
+
+      if (value > 0) {
+        element.classList.add("positive");
+      } else if (value < 0) {
+        element.classList.add("negative");
+      } else {
+        element.classList.add("neutral");
+      }
+    }
+
+    function setApiIndicator(state) {
+      const indicator = document.getElementById("liveIndicator");
+      if (!indicator) return;
+
+      indicator.classList.remove("live", "error", "loading");
+
+      if (state === "live") {
+        indicator.classList.add("live");
+      } else if (state === "error") {
+        indicator.classList.add("error");
+      } else if (state === "loading") {
+        indicator.classList.add("loading");
+      }
+    }
+
+    function applyQuickTarget(value) {
+      const targets = [
+        document.getElementById("target1"),
+        document.getElementById("target2"),
+        document.getElementById("target3")
+      ];
+
+      const emptyTarget = targets.find(input => !input.value);
+
+      if (emptyTarget) {
+        emptyTarget.value = value;
+      } else {
+        document.getElementById("target1").value = value;
+      }
+
+      updateTargetProfits();
+    }
+
+    function clearTargets() {
+      document.getElementById("target1").value = "";
+      document.getElementById("target2").value = "";
+      document.getElementById("target3").value = "";
+      updateTargetProfits();
+    }
+
+    function animateMilestoneBars() {
+      const bars = document.querySelectorAll(".progress-fill");
+
+      bars.forEach(bar => {
+        const targetWidth = bar.dataset.width || "0%";
+        bar.style.width = "0%";
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bar.style.width = targetWidth;
+          });
+        });
+      });
+    }
+
+    function renderMilestones(totalBTC) {
+      const milestoneList = document.getElementById("milestoneList");
+      milestoneList.innerHTML = "";
+
+      milestones.forEach(target => {
+        const progress = Math.min((totalBTC / target) * 100, 100);
+        const remaining = Math.max(target - totalBTC, 0);
+        const reached = totalBTC >= target;
+        const targetLabel = formatMilestoneTarget(target);
+
+        const item = document.createElement("div");
+        item.className = "milestone-item";
+
+        item.innerHTML = `
+          <div class="milestone-top">
+            <div class="milestone-title">${targetLabel} BTC Milestone</div>
+            <div>${reached ? '<span class="milestone-complete">Reached</span>' : `${formatPercent(progress)}%`}</div>
+          </div>
+          <div class="milestone-details">
+            ${reached
+              ? `You have reached this milestone with <strong>${formatBTC(totalBTC)}</strong> BTC.`
+              : `You need <strong>${formatBTC(remaining)}</strong> BTC more to reach <strong>${targetLabel}</strong> BTC.`
+            }
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" data-width="${progress}%"></div>
+          </div>
+        `;
+
+        milestoneList.appendChild(item);
+      });
+
+      animateMilestoneBars();
+    }
+
+    function updateCAGRProjection() {
+      const rateInput = parseFloat(document.getElementById("cagrRate").value);
+      const yearsInput = parseFloat(document.getElementById("cagrYears").value);
+      const monthlyInput = parseFloat(document.getElementById("monthlyContribution").value);
+      const overrideInput = parseFloat(document.getElementById("startingOverride").value);
+
+      const liveStartingValue = getCurrentPortfolioValue();
+      const startingValue = (!isNaN(overrideInput) && overrideInput >= 0) ? overrideInput : liveStartingValue;
+
+      const annualRate = !isNaN(rateInput) ? rateInput / 100 : 0;
+      const years = !isNaN(yearsInput) ? yearsInput : 0;
+      const monthlyContribution = !isNaN(monthlyInput) ? monthlyInput : 0;
+
+      if (years < 0 || annualRate < -1 || monthlyContribution < 0 || startingValue < 0) {
+        document.getElementById("cagrStartingValue").innerText = "0.00";
+        document.getElementById("cagrProjectedValue").innerText = "0.00";
+        document.getElementById("cagrContributed").innerText = "0.00";
+        document.getElementById("cagrGrowth").innerText = "0.00";
+        setValueState(document.getElementById("cagrGrowth"), 0);
+        return;
+      }
+
+      const months = Math.round(years * 12);
+      const monthlyRate = Math.pow(1 + annualRate, 1 / 12) - 1;
+
+      let futureValue = startingValue;
+
+      for (let i = 0; i < months; i++) {
+        futureValue = futureValue * (1 + monthlyRate);
+        futureValue += monthlyContribution;
+      }
+
+      const totalContributed = startingValue + (monthlyContribution * months);
+      const growth = futureValue - totalContributed;
+
+      document.getElementById("cagrStartingValue").innerText = formatMoney(startingValue);
+      document.getElementById("cagrProjectedValue").innerText = formatMoney(futureValue);
+      document.getElementById("cagrContributed").innerText = formatMoney(totalContributed);
+      document.getElementById("cagrGrowth").innerText = formatMoney(growth);
+
+      setValueState(document.getElementById("cagrGrowth"), growth);
+    }
+
+    function updateSentiment(currentPrice, avgPrice) {
+      const badge = document.getElementById("sentimentBadge");
+      const diffEl = document.getElementById("sentimentDiff");
+      const currentEl = document.getElementById("sentimentCurrent");
+      const avgEl = document.getElementById("sentimentAvg");
+
+      currentEl.innerText = formatMoney(currentPrice);
+      avgEl.innerText = formatMoney(avgPrice);
+
+      if (avgPrice <= 0 || !currentPrice) {
+        badge.className = "sentiment-badge";
+        badge.innerText = "Awaiting Data";
+        diffEl.innerText = "";
+        return;
+      }
+
+      const priceDiff = currentPrice - avgPrice;
+      const percentDiff = (priceDiff / avgPrice) * 100;
+      const absMercent = Math.abs(percentDiff);
+
+      badge.classList.remove("below", "near", "above");
+
+      if (priceDiff < 0) {
+        badge.classList.add("below");
+        badge.innerText = "📉 Below Average Cost";
+        diffEl.innerHTML = `<span style="color: #fca5a5;">↓ ${formatPercent(Math.abs(percentDiff))}% below</span>`;
+      } else if (absMercent <= 8) {
+        badge.classList.add("near");
+        badge.innerText = "⚖️ Near Average Cost";
+        if (priceDiff > 0) {
+          diffEl.innerHTML = `<span style="color: #fed7aa;">↑ ${formatPercent(percentDiff)}% above</span>`;
+        } else {
+          diffEl.innerHTML = `<span style="color: #fed7aa;">Same as average</span>`;
+        }
+      } else {
+        badge.classList.add("above");
+        badge.innerText = "📈 Above Average Cost";
+        diffEl.innerHTML = `<span style="color: #86efac;">↑ ${formatPercent(percentDiff)}% above</span>`;
+      }
+    }
+
+    function updateUI() {
+      const list = document.getElementById("transactions");
+      const { totalBTC, totalGBP, totalFees } = getTotals();
+
+      list.innerHTML = "";
+
+      transactions.forEach((t, index) => {
+        const fee = Number(t.fee || 0);
+
+        const div = document.createElement("div");
+        div.className = "transaction";
+
+        div.innerHTML = `
+          <div class="transaction-left">
+            <span class="transaction-date">${t.date || "No date"}</span>
+            <span>£${formatMoney(t.gbp)} @ £${formatMoney(t.price)} + fee £${formatMoney(fee)}</span>
+          </div>
+          <span>
+            ${formatBTC(t.btc)} BTC
+            <button class="delete-btn" onclick="deleteTransaction(${index})">✖</button>
+          </span>
+        `;
+
+        list.appendChild(div);
+      });
+
+      const avg = totalBTC > 0 ? totalGBP / totalBTC : 0;
+
+      document.getElementById("totalBTC").innerText = formatBTC(totalBTC);
+      document.getElementById("totalGBP").innerText = formatMoney(totalGBP);
+      document.getElementById("totalFees").innerText = formatMoney(totalFees);
+      document.getElementById("avgPrice").innerText = formatMoney(avg);
+
+      updateSentiment(latestBTCPrice, avg);
+
+      localStorage.setItem("btcData", JSON.stringify(transactions));
+      renderMilestones(totalBTC);
+      renderChart();
+      updateTargetProfits();
+      updatePortfolio(latestBTCPrice);
+      updateCAGRProjection();
+    }
+
+    function addTransaction() {
+      const date = document.getElementById("buyDate").value;
+      const price = parseFloat(document.getElementById("price").value);
+      const invested = parseFloat(document.getElementById("invested").value);
+      const fee = parseFloat(document.getElementById("fee").value) || 0;
+
+      if (!date || isNaN(price) || isNaN(invested) || price <= 0 || invested <= 0 || fee < 0) {
+        alert("Enter a date and valid positive numbers");
+        return;
+      }
+
+      const btc = invested / price;
+
+      transactions.push({
+        date,
+        price,
+        gbp: invested,
+        fee,
+        btc
+      });
+
+      document.getElementById("buyDate").value = "";
+      document.getElementById("price").value = "";
+      document.getElementById("invested").value = "";
+      document.getElementById("fee").value = "";
+
+      updateUI();
+      getBTCPrice();
+    }
+
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      updateUI();
+      getBTCPrice();
+    }
+
+    async function getBTCPrice() {
+      const apiStatusEl = document.getElementById("apiStatus");
+
+      const sources = [
+        {
+          name: "CoinGecko",
+          url: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=gbp,usd",
+          parse: async (res) => {
+            const data = await res.json();
+            if (!data.bitcoin || typeof data.bitcoin.gbp !== "number" || typeof data.bitcoin.usd !== "number") {
+              throw new Error("Bad CoinGecko data");
+            }
+            return { gbp: data.bitcoin.gbp, usd: data.bitcoin.usd };
+          }
+        },
+        {
+          name: "Blockchain.com",
+          url: "https://blockchain.info/ticker",
+          parse: async (res) => {
+            const data = await res.json();
+            if (!data.GBP || !data.USD || typeof data.GBP.last !== "number" || typeof data.USD.last !== "number") {
+              throw new Error("Bad Blockchain.com data");
+            }
+            return { gbp: data.GBP.last, usd: data.USD.last };
+          }
+        },
+        {
+          name: "Coinbase",
+          url: "https://api.coinbase.com/v2/exchange-rates?currency=BTC",
+          parse: async (res) => {
+            const data = await res.json();
+            const rates = data?.data?.rates;
+            const gbp = rates ? Number(rates.GBP) : NaN;
+            const usd = rates ? Number(rates.USD) : NaN;
+
+            if (!Number.isFinite(gbp) || !Number.isFinite(usd) || gbp <= 0 || usd <= 0) {
+              throw new Error("Bad Coinbase data");
+            }
+
+            return { gbp, usd };
+          }
+        }
+      ];
+
+      apiStatusEl.innerText = "Loading...";
+      setApiIndicator("loading");
+
+      for (const source of sources) {
+        try {
+          const res = await fetch(source.url, { cache: "no-store" });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+          const prices = await source.parse(res);
+
+          latestBTCPrice = prices.gbp;
+          latestBTCPriceUSD = prices.usd;
+
+          document.getElementById("currentPrice").innerText = formatMoney(prices.gbp);
+          document.getElementById("currentPriceUSD").innerText = formatMoney(prices.usd);
+          apiStatusEl.innerText = `Live (${source.name})`;
+          setApiIndicator("live");
+
+          updatePortfolio(prices.gbp);
+          updateCAGRProjection();
+          renderChart();
+          const { totalBTC, totalGBP } = getTotals();
+          const avg = totalBTC > 0 ? totalGBP / totalBTC : 0;
+          updateSentiment(prices.gbp, avg);
+          return;
+        } catch (err) {
+          console.log(`Price fetch failed from ${source.name}:`, err);
+        }
+      }
+
+      document.getElementById("currentPrice").innerText = "Unavailable";
+      document.getElementById("currentPriceUSD").innerText = "Unavailable";
+      apiStatusEl.innerText = "API Error";
+      setApiIndicator("error");
+      updateCAGRProjection();
+    }
+
+    function updatePortfolio(currentPrice) {
+      const { totalBTC, totalGBP } = getTotals();
+
+      if (!currentPrice || currentPrice <= 0) {
+        document.getElementById("portfolio").innerText = formatMoney(0);
+
+        const profitEl = document.getElementById("profit");
+        const percentEl = document.getElementById("percent");
+
+        profitEl.innerText = formatMoney(0);
+        percentEl.innerText = formatPercent(0);
+
+        setValueState(profitEl, 0);
+        setValueState(percentEl, 0);
+        return;
+      }
+
+      const value = totalBTC * currentPrice;
+      const profit = value - totalGBP;
+      const percent = totalGBP > 0 ? (profit / totalGBP) * 100 : 0;
+
+      document.getElementById("portfolio").innerText = formatMoney(value);
+
+      const profitEl = document.getElementById("profit");
+      const percentEl = document.getElementById("percent");
+
+      profitEl.innerText = formatMoney(profit);
+      percentEl.innerText = formatPercent(percent);
+
+      setValueState(profitEl, profit);
+      setValueState(percentEl, percent);
+    }
+
+    function updateTargetProfits() {
+      const { totalBTC, totalGBP } = getTotals();
+
+      updateSingleTarget("target1", "target1Value", "target1Profit", "target1Percent", totalBTC, totalGBP);
+      updateSingleTarget("target2", "target2Value", "target2Profit", "target2Percent", totalBTC, totalGBP);
+      updateSingleTarget("target3", "target3Value", "target3Profit", "target3Percent", totalBTC, totalGBP);
+    }
+
+    function updateSingleTarget(inputId, valueId, profitId, percentId, totalBTC, totalGBP) {
+      const targetPrice = parseFloat(document.getElementById(inputId).value);
+      const valueEl = document.getElementById(valueId);
+      const profitEl = document.getElementById(profitId);
+      const percentEl = document.getElementById(percentId);
+
+      if (isNaN(targetPrice) || targetPrice <= 0) {
+        valueEl.innerText = "0";
+        profitEl.innerText = "0";
+        percentEl.innerText = "0";
+
+        setValueState(profitEl, 0);
+        setValueState(percentEl, 0);
+        return;
+      }
+
+      const targetValue = totalBTC * targetPrice;
+      const targetProfit = targetValue - totalGBP;
+      const targetPercent = totalGBP > 0 ? (targetProfit / totalGBP) * 100 : 0;
+
+      valueEl.innerText = formatMoney(targetValue);
+      profitEl.innerText = formatMoney(targetProfit);
+      percentEl.innerText = formatPercent(targetPercent);
+
+      setValueState(profitEl, targetProfit);
+      setValueState(percentEl, targetPercent);
+    }
+
+    function renderChart() {
+      const labels = transactions.map(t => t.date || "No date");
+      const buyPrices = transactions.map(t => t.price);
+
+      const { totalBTC, totalGBP } = getTotals();
+      const avgPrice = totalBTC > 0 ? totalGBP / totalBTC : 0;
+
+      const avgLine = labels.map(() => avgPrice);
+      const currentLine = labels.map(() => latestBTCPrice || 0);
+
+      // Create cumulative amounts invested for tooltip context
+      let cumulativeInvested = 0;
+      let cumulativeBTC = 0;
+      const tooltipData = transactions.map(t => {
+        cumulativeInvested += t.gbp + (t.fee || 0);
+        cumulativeBTC += t.btc;
+        return {
+          invested: t.gbp,
+          fee: t.fee || 0,
+          btc: t.btc,
+          cumulativeInvested: cumulativeInvested,
+          cumulativeBTC: cumulativeBTC
+        };
+      });
+
+      const ctx = document.getElementById("btcChart").getContext("2d");
+
+      if (btcChart) btcChart.destroy();
+
+      btcChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Buy Price",
+              data: buyPrices,
+              borderWidth: 3,
+              borderColor: "#f59e0b",
+              backgroundColor: "#f59e0b",
+              fill: false,
+              tension: 0.3,
+              pointRadius: 7,
+              pointHoverRadius: 9,
+              pointBackgroundColor: "#f59e0b",
+              pointBorderColor: "#ffffff",
+              pointBorderWidth: 2,
+              pointHoverBackgroundColor: "#fbbf24"
+            },
+            {
+              label: "Average Cost",
+              data: avgLine,
+              borderWidth: 2.5,
+              borderColor: "#38bdf8",
+              borderDash: [5, 5],
+              pointRadius: 0,
+              tension: 0,
+              fill: false,
+              pointHoverRadius: 0
+            },
+            {
+              label: "Current Price",
+              data: currentLine,
+              borderWidth: 2.5,
+              borderColor: "#4ade80",
+              borderDash: [5, 5],
+              pointRadius: 0,
+              tension: 0,
+              fill: false,
+              pointHoverRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: "index"
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: "#f3f4f6",
+                font: { weight: 600, size: 13 },
+                usePointStyle: true,
+                padding: 20
+              }
+            },
+            tooltip: {
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              titleColor: "#fbbf24",
+              bodyColor: "#f3f4f6",
+              borderColor: "#f59e0b",
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                title: function(context) {
+                  return "📅 " + context[0].label;
+                },
+                label: function(context) {
+                  const value = context.parsed.y;
+                  const label = context.dataset.label;
+                  
+                  if (context.datasetIndex === 0 && tooltipData[context.dataIndex]) {
+                    const data = tooltipData[context.dataIndex];
+                    return [
+                      `${label}: £${formatMoney(value)}`,
+                      `Amount Invested: £${formatMoney(data.invested)}`,
+                      `Fee: £${formatMoney(data.fee)}`,
+                      `BTC Amount: ${formatBTC(data.btc)}`,
+                      `Total Invested: £${formatMoney(data.cumulativeInvested)}`,
+                      `Total BTC: ${formatBTC(data.cumulativeBTC)}`
+                    ];
+                  }
+                  
+                  return `${label}: £${formatMoney(value)}`;
+                },
+                afterLabel: function(context) {
+                  if (context.datasetIndex === 0) {
+                    const currentVal = currentLine[context.dataIndex];
+                    const buyVal = context.parsed.y;
+                    const gainLoss = currentVal - buyVal;
+                    const percentChange = buyVal > 0 ? (gainLoss / buyVal) * 100 : 0;
+                    
+                    if (gainLoss > 0) {
+                      return `📈 Gain: £${formatMoney(gainLoss)} (+${formatPercent(percentChange)}%)`;
+                    } else if (gainLoss < 0) {
+                      return `📉 Loss: £${formatMoney(gainLoss)} (${formatPercent(percentChange)}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#9ca3af", font: { size: 12 } },
+              grid: { color: "rgba(255,255,255,0.04)" }
+            },
+            y: {
+              ticks: {
+                color: "#9ca3af",
+                font: { size: 12 },
+                callback: function(value) {
+                  return "£" + Number(value).toLocaleString("en-GB");
+                }
+              },
+              grid: { color: "rgba(255,255,255,0.06)" }
+            }
+          }
+        }
+      });
+    }
+
+    document.getElementById("target1").addEventListener("input", updateTargetProfits);
+    document.getElementById("target2").addEventListener("input", updateTargetProfits);
+    document.getElementById("target3").addEventListener("input", updateTargetProfits);
+
+    document.getElementById("cagrRate").addEventListener("input", updateCAGRProjection);
+    document.getElementById("cagrYears").addEventListener("input", updateCAGRProjection);
+    document.getElementById("monthlyContribution").addEventListener("input", updateCAGRProjection);
+    document.getElementById("startingOverride").addEventListener("input", updateCAGRProjection);
+
+    updateUI();
+    setApiIndicator("loading");
+    getBTCPrice();
+    setInterval(getBTCPrice, 30000);
+  </script>
+
+</body>
+</html>
