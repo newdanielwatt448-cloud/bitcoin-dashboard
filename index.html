@@ -3,76 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <title>Bitcoin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bitcoin Dashboard">
+  <meta name="theme-color" content="#0f1115">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --bg: #0f1115;
-      --card: #181b20;
-      --card-2: #22262d;
-      --input: #262b33;
-      --border: #353b45;
+      --bg: #0b0e13;
+      --bg-2: #10141b;
+      --card: rgba(24, 27, 32, 0.86);
+      --card-2: rgba(33, 38, 46, 0.9);
+      --input: #1f242c;
+      --border: rgba(255,255,255,0.08);
+      --border-soft: rgba(255,255,255,0.05);
       --text: #f3f4f6;
-      --muted: #a8b0bd;
+      --muted: #9ea7b6;
       --accent: #f59e0b;
-      --accent-hover: #fbbf24;
+      --accent-2: #fbbf24;
       --positive: #4ade80;
       --negative: #f87171;
       --positive-glow: rgba(74, 222, 128, 0.22);
       --negative-glow: rgba(248, 113, 113, 0.18);
       --bar-bg: #2b3139;
       --bar-fill: #f59e0b;
+      --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.24);
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
-      font-family: Arial, sans-serif;
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 24px;
-      background: linear-gradient(180deg, #0b0d10 0%, #11151b 100%);
+      margin: 0;
+      font-family: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(245, 158, 11, 0.08), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       color: var(--text);
+      min-height: 100vh;
+      padding:
+        max(18px, env(safe-area-inset-top))
+        16px
+        max(28px, env(safe-area-inset-bottom))
+        16px;
+    }
+
+    .app-shell {
+      max-width: 1320px;
+      margin: 0 auto;
     }
 
     .hero {
+      position: relative;
       text-align: center;
-      margin-bottom: 24px;
-      padding: 10px 0 6px;
+      margin-bottom: 20px;
+      padding: 24px 18px 18px;
+      border: 1px solid var(--border-soft);
+      border-radius: 26px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%),
+        rgba(17, 21, 27, 0.72);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -10%;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -8% -55% auto;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.12), transparent 68%);
+      pointer-events: none;
     }
 
     .hero-kicker {
-      display: inline-block;
-      font-size: 12px;
-      letter-spacing: 2.8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      color: #c8a75a;
-      margin-bottom: 10px;
-      font-weight: 700;
+      color: #f7d58b;
+      margin-bottom: 12px;
+      font-weight: 800;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.18);
     }
 
     .hero-title {
       margin: 0;
-      font-size: clamp(34px, 6vw, 56px);
+      font-size: clamp(30px, 7vw, 56px);
       font-weight: 900;
-      letter-spacing: -0.5px;
-      line-height: 1.02;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 20%, #fbbf24 50%, #f59e0b 80%, #d97706 100%);
+      line-height: 0.98;
+      letter-spacing: -1.2px;
+      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 18%, #fbbf24 48%, #f59e0b 78%, #d97706 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-shadow: 0 20px 50px rgba(245, 158, 11, 0.25), 0 0 40px rgba(251, 191, 36, 0.15);
-      filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.2));
+      text-shadow: 0 20px 50px rgba(245, 158, 11, 0.18);
     }
 
     .hero-subtitle {
-      margin-top: 12px;
+      margin: 14px auto 0;
       color: var(--muted);
-      font-size: 15px;
-      letter-spacing: 0.2px;
+      font-size: 14px;
+      line-height: 1.65;
+      max-width: 740px;
     }
 
     h3, h4 {
@@ -87,76 +153,157 @@
 
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
       gap: 18px;
       align-items: start;
     }
 
+    .left-stack,
     .right-stack {
       display: grid;
       gap: 18px;
+      min-width: 0;
     }
 
     .full-width {
       grid-column: 1 / -1;
     }
 
-.card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%), var(--card);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  min-width: 0;
-  backdrop-filter: blur(6px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    .card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%),
+        var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      box-shadow:
+        var(--shadow-md),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      min-width: 0;
+      backdrop-filter: blur(10px);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 158, 11, 0.18);
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.32),
+        0 0 0 1px rgba(245, 158, 11, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+      border-radius: 999px;
+    }
+    .overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(245, 158, 11, 0.22);
-  box-shadow:
-    0 16px 36px rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(245, 158, 11, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+.hero-stat {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012)), var(--card-2);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 16px;
+  min-width: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.primary-stat {
+  background:
+    linear-gradient(180deg, rgba(245, 158, 11, 0.06), rgba(255,255,255,0.01)),
+    var(--card-2);
+  border: 1px solid rgba(245, 158, 11, 0.12);
+}
+
+.hero-stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 8px;
+}
+
+.hero-stat-value {
+  font-size: clamp(24px, 3.2vw, 34px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.hero-stat-sub {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.secondary-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
     .stats {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      font-size: 16px;
     }
 
     .stat-item {
-      background: var(--card-2);
-      padding: 14px;
-      border-radius: 12px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      line-height: 1.5;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card-2);
+      padding: 16px 14px;
+      border-radius: 16px;
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      line-height: 1.4;
       min-width: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
     }
 
     .stat-item strong {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 18px;
-      font-weight: 700;
+      display: block;
+      margin-top: 6px;
+      font-size: clamp(17px, 3vw, 22px);
+      font-weight: 800;
+      line-height: 1.25;
       word-break: break-word;
+      letter-spacing: -0.3px;
+    }
+
+    .stat-item {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
     }
 
     input,
     button {
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 10px;
+      padding: 14px 14px;
+      margin-top: 0;
+      border-radius: 14px;
       border: none;
-      box-sizing: border-box;
       font-size: 15px;
+      font-family: inherit;
     }
 
     input {
@@ -164,12 +311,14 @@
       color: var(--text);
       border: 1px solid var(--border);
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      min-height: 50px;
     }
 
     input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.75);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
+      background: #20262f;
     }
 
     input::placeholder {
@@ -177,19 +326,26 @@
     }
 
     button {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
       color: #111;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform 0.15s ease, background 0.2s ease;
+      transition: transform 0.14s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      min-height: 50px;
+      box-shadow: 0 12px 24px rgba(245, 158, 11, 0.18);
     }
 
     button:hover {
-      background: var(--accent-hover);
       transform: translateY(-1px);
+      filter: brightness(1.03);
     }
 
-    .buy-grid {
+    button:active {
+      transform: translateY(0);
+    }
+
+    .buy-grid,
+    .cagr-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
@@ -207,16 +363,10 @@
     }
 
     .quick-target-btn {
-      margin-top: 0;
-      padding: 10px 12px;
+      padding: 11px 12px;
       font-size: 14px;
-      border-radius: 10px;
-    }
-
-    .cagr-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      border-radius: 12px;
+      min-height: 46px;
     }
 
     .cagr-output-grid {
@@ -227,54 +377,57 @@
     }
 
     .cagr-note {
-      margin-top: 12px;
+      margin-top: 14px;
       font-size: 13px;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .transaction {
-      background: var(--card-2);
-      padding: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)), var(--card-2);
+      padding: 14px;
       margin-top: 10px;
-      border-radius: 10px;
+      border-radius: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      gap: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .transaction-left {
       display: flex;
       flex-direction: column;
       min-width: 0;
+      gap: 2px;
     }
 
     .transaction-left span:last-child {
       word-break: break-word;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 14px;
     }
 
     .transaction-date {
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+      letter-spacing: 0.2px;
     }
 
     .delete-btn {
-      background: none;
+      background: transparent;
       color: var(--negative);
       border: none;
       cursor: pointer;
       width: auto;
-      margin: 0;
-      padding: 0 0 0 10px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    .section-title {
-      margin: 0 0 12px 0;
+      margin: 0 0 0 10px;
+      padding: 0;
+      font-size: 17px;
+      font-weight: 800;
+      box-shadow: none;
+      min-height: auto;
     }
 
     .targets-grid {
@@ -284,43 +437,52 @@
     }
 
     .target-box {
-      background: var(--card-2);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)), var(--card-2);
+      border-radius: 16px;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .target-box h4 {
       margin: 0 0 10px 0;
-      font-size: 16px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
     }
 
     .target-output {
       margin-top: 12px;
       line-height: 1.8;
-      font-size: 15px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .target-output span {
+      color: var(--text);
+      font-weight: 700;
     }
 
     .muted {
       color: var(--muted);
       font-size: 13px;
+      line-height: 1.6;
     }
 
     .positive {
       color: var(--positive);
-      font-weight: 700;
+      font-weight: 800;
       text-shadow: 0 0 10px var(--positive-glow);
     }
 
     .negative {
       color: var(--negative);
-      font-weight: 700;
+      font-weight: 800;
       text-shadow: 0 0 10px var(--negative-glow);
     }
 
     .neutral {
       color: var(--text);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .milestone-list {
@@ -329,10 +491,10 @@
     }
 
     .milestone-item {
-      background: var(--card-2);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)), var(--card-2);
+      border-radius: 16px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     .milestone-top {
@@ -345,14 +507,15 @@
     }
 
     .milestone-title {
-      font-weight: 700;
+      font-weight: 800;
       font-size: 15px;
+      letter-spacing: -0.2px;
     }
 
     .milestone-details {
       font-size: 13px;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .progress-bar {
@@ -370,11 +533,12 @@
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
       border-radius: 999px;
       transition: width 0.9s ease;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
     }
 
     .milestone-complete {
       color: var(--positive);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .live-indicator {
@@ -387,6 +551,7 @@
       vertical-align: middle;
       box-shadow: 0 0 0 rgba(74, 222, 128, 0);
       transition: background 0.2s ease;
+      flex-shrink: 0;
     }
 
     .live-indicator.live {
@@ -426,35 +591,38 @@
     }
 
     .sentiment-box {
-      background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%), var(--card-2);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)),
+        var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 20px;
       padding: 20px;
       text-align: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(4px);
+      box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
       transition: all 0.3s ease;
     }
 
     .sentiment-label {
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--muted);
       margin-bottom: 10px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .sentiment-badge {
       display: inline-block;
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
+      padding: 11px 18px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 13px;
       margin-bottom: 12px;
       transition: all 0.3s ease;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
+      line-height: 1.35;
     }
 
     .sentiment-badge.below {
@@ -481,31 +649,39 @@
     .sentiment-details {
       font-size: 12px;
       color: var(--muted);
-      line-height: 1.8;
+      line-height: 1.9;
     }
 
     .sentiment-details strong {
       color: var(--text);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .chart-wrap {
       height: 420px;
+      position: relative;
     }
 
     canvas {
       width: 100% !important;
       height: 100% !important;
-      background: var(--card);
-      border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255,255,255,0.015);
+      border-radius: 16px;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    @media (max-width: 1050px) {
+    @media (max-width: 1100px) {
       .dashboard-grid {
         grid-template-columns: 1fr;
       }
+      .overview-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.secondary-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 
       .stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -514,10 +690,49 @@
 
     @media (max-width: 700px) {
       body {
-        padding: 14px;
+        padding:
+          max(14px, env(safe-area-inset-top))
+          12px
+          max(22px, env(safe-area-inset-bottom))
+          12px;
+      }
+      .overview-grid,
+.secondary-stats {
+  grid-template-columns: 1fr;
+}
+
+.hero-stat {
+  padding: 15px;
+}
+
+.hero-stat-value {
+  font-size: 28px;
+}
+
+      .hero {
+        padding: 20px 14px 16px;
+        border-radius: 22px;
+        margin-bottom: 16px;
       }
 
-      .stats,
+      .hero-title {
+        letter-spacing: -1.1px;
+      }
+
+      .hero-subtitle {
+        font-size: 13px;
+      }
+
+      .card,
+      .sentiment-box {
+        padding: 16px;
+        border-radius: 18px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
       .buy-grid,
       .quick-targets,
       .cagr-grid,
@@ -525,174 +740,219 @@
         grid-template-columns: 1fr;
       }
 
+      .stat-item {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
       .transaction {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      .chart-wrap {
-        height: 320px;
+      .transaction span:last-child {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
+      .delete-btn {
+        margin-left: 12px;
+      }
+
+      .chart-wrap {
+        height: 300px;
+      }
+
+      .section-title {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-width: 420px) {
       .hero-title {
-        letter-spacing: -0.8px;
+        font-size: 30px;
+      }
+
+      input,
+      button {
+        font-size: 16px;
+      }
+
+      .chart-wrap {
+        height: 260px;
       }
     }
   </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bitcoin Dashboard">
-<meta name="theme-color" content="#0f1115">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="app-shell">
+    <div class="hero">
+      <div class="hero-kicker">Bitcoin Portfolio Tracker</div>
+      <h1 class="hero-title">Bitcoin Dashboard</h1>
+      <div class="hero-subtitle">Track your BTC position, performance, targets, and long-term growth in one place.</div>
+    </div>
 
-  <div class="hero">
-    <h1 class="hero-title">Bitcoin Dashboard</h1>
-    <div class="hero-subtitle">Track your BTC position, performance, targets, and long-term growth in one place.</div>
+    <div class="dashboard">
+
+      <div class="card full-width">
+  <div class="overview-grid">
+    <div class="hero-stat primary-stat">
+      <div class="hero-stat-label">Portfolio Value</div>
+      <div class="hero-stat-value">£<span id="portfolio">0</span></div>
+    </div>
+
+    <div class="hero-stat primary-stat">
+      <div class="hero-stat-label">Profit / Loss</div>
+      <div class="hero-stat-value">
+        £<span id="profit" class="neutral">0</span>
+      </div>
+      <div class="hero-stat-sub">
+        <span id="percent" class="neutral">0</span>%
+      </div>
+    </div>
+
+    <div class="hero-stat primary-stat">
+      <div class="hero-stat-label">Current BTC Price</div>
+      <div class="hero-stat-value">£<span id="currentPrice">Loading...</span></div>
+      <div class="hero-stat-sub">$<span id="currentPriceUSD">Loading...</span></div>
+    </div>
+
+    <div class="hero-stat primary-stat">
+      <div class="hero-stat-label">Total BTC</div>
+      <div class="hero-stat-value"><span id="totalBTC">0</span></div>
+    </div>
   </div>
 
-  <div class="dashboard">
-
-    <div class="card full-width">
-      <div class="stats">
-        <div class="stat-item">Total BTC<br><strong><span id="totalBTC">0</span></strong></div>
-        <div class="stat-item">Total Invested<br><strong>£<span id="totalGBP">0</span></strong></div>
-        <div class="stat-item">Total Fees Paid<br><strong>£<span id="totalFees">0</span></strong></div>
-        <div class="stat-item">Avg Buy Price<br><strong>£<span id="avgPrice">0</span></strong></div>
-        <div class="stat-item">Current BTC Price (GBP)<br><strong>£<span id="currentPrice">Loading...</span></strong></div>
-        <div class="stat-item">Current BTC Price (USD)<br><strong>$<span id="currentPriceUSD">Loading...</span></strong></div>
-        <div class="stat-item">Portfolio Value<br><strong>£<span id="portfolio">0</span></strong></div>
-        <div class="stat-item">
-          Profit / Loss<br>
-          <strong>£<span id="profit" class="neutral">0</span> (<span id="percent" class="neutral">0</span>%)</strong>
-        </div>
-        <div class="stat-item">
-          API Status<br>
-          <strong>
-            <span class="live-indicator" id="liveIndicator"></span>
-            <span id="apiStatus">Waiting...</span>
-          </strong>
-        </div>
-      </div>
+  <div class="stats secondary-stats">
+    <div class="stat-item">Total Invested<strong>£<span id="totalGBP">0</span></strong></div>
+    <div class="stat-item">Avg Buy Price<strong>£<span id="avgPrice">0</span></strong></div>
+    <div class="stat-item">Total Fees Paid<strong>£<span id="totalFees">0</span></strong></div>
+    <div class="stat-item">
+      API Status
+      <strong>
+        <span class="live-indicator" id="liveIndicator"></span>
+        <span id="apiStatus">Waiting...</span>
+      </strong>
     </div>
+  </div>
+</div>
 
-    <div class="dashboard-grid">
-      <div class="left-stack">
-        <div class="card">
-          <h3 class="section-title">Add Buy</h3>
-          <div class="buy-grid">
-            <input type="date" id="buyDate" />
-            <input type="number" id="price" placeholder="BTC Buy Price (£)" />
-            <input type="number" id="invested" placeholder="Amount Invested (£)" />
-            <input type="number" id="fee" placeholder="Fee (£)" step="0.01" />
-            <button class="full-row" onclick="addTransaction()">Add Buy</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title">Potential Profits</h3>
-
-          <div class="quick-targets">
-            <button class="quick-target-btn" onclick="applyQuickTarget(100000)">£100k</button>
-            <button class="quick-target-btn" onclick="applyQuickTarget(150000)">£150k</button>
-            <button class="quick-target-btn" onclick="applyQuickTarget(200000)">£200k</button>
-            <button class="quick-target-btn" onclick="applyQuickTarget(250000)">£250k</button>
-            <button class="quick-target-btn" onclick="applyQuickTarget(500000)">£500k</button>
-            <button class="quick-target-btn" onclick="clearTargets()">Clear</button>
+      <div class="dashboard-grid">
+        <div class="left-stack">
+          <div class="card">
+            <h3 class="section-title">Add Buy</h3>
+            <div class="buy-grid">
+              <input type="date" id="buyDate" />
+              <input type="number" id="price" placeholder="BTC Buy Price (£)" />
+              <input type="number" id="invested" placeholder="Amount Invested (£)" />
+              <input type="number" id="fee" placeholder="Fee (£)" step="0.01" />
+              <button class="full-row" onclick="addTransaction()">Add Buy</button>
+            </div>
           </div>
 
-          <div class="targets-grid">
-            <div class="target-box">
-              <h4>Target 1</h4>
-              <input type="number" id="target1" placeholder="BTC target price (£)" />
-              <div class="target-output">
-                Value: £<span id="target1Value">0</span><br />
-                Profit: £<span id="target1Profit" class="neutral">0</span><br />
-                Return: <span id="target1Percent" class="neutral">0</span>%
-              </div>
+          <div class="card">
+            <h3 class="section-title">Potential Profits</h3>
+
+            <div class="quick-targets">
+              <button class="quick-target-btn" onclick="applyQuickTarget(100000)">£100k</button>
+              <button class="quick-target-btn" onclick="applyQuickTarget(150000)">£150k</button>
+              <button class="quick-target-btn" onclick="applyQuickTarget(200000)">£200k</button>
+              <button class="quick-target-btn" onclick="applyQuickTarget(250000)">£250k</button>
+              <button class="quick-target-btn" onclick="applyQuickTarget(500000)">£500k</button>
+              <button class="quick-target-btn" onclick="clearTargets()">Clear</button>
             </div>
 
-            <div class="target-box">
-              <h4>Target 2</h4>
-              <input type="number" id="target2" placeholder="BTC target price (£)" />
-              <div class="target-output">
-                Value: £<span id="target2Value">0</span><br />
-                Profit: £<span id="target2Profit" class="neutral">0</span><br />
-                Return: <span id="target2Percent" class="neutral">0</span>%
+            <div class="targets-grid">
+              <div class="target-box">
+                <h4>Target 1</h4>
+                <input type="number" id="target1" placeholder="BTC target price (£)" />
+                <div class="target-output">
+                  Value: £<span id="target1Value">0</span><br />
+                  Profit: £<span id="target1Profit" class="neutral">0</span><br />
+                  Return: <span id="target1Percent" class="neutral">0</span>%
+                </div>
               </div>
-            </div>
 
-            <div class="target-box">
-              <h4>Target 3</h4>
-              <input type="number" id="target3" placeholder="BTC target price (£)" />
-              <div class="target-output">
-                Value: £<span id="target3Value">0</span><br />
-                Profit: £<span id="target3Profit" class="neutral">0</span><br />
-                Return: <span id="target3Percent" class="neutral">0</span>%
+              <div class="target-box">
+                <h4>Target 2</h4>
+                <input type="number" id="target2" placeholder="BTC target price (£)" />
+                <div class="target-output">
+                  Value: £<span id="target2Value">0</span><br />
+                  Profit: £<span id="target2Profit" class="neutral">0</span><br />
+                  Return: <span id="target2Percent" class="neutral">0</span>%
+                </div>
+              </div>
+
+              <div class="target-box">
+                <h4>Target 3</h4>
+                <input type="number" id="target3" placeholder="BTC target price (£)" />
+                <div class="target-output">
+                  Value: £<span id="target3Value">0</span><br />
+                  Profit: £<span id="target3Profit" class="neutral">0</span><br />
+                  Return: <span id="target3Percent" class="neutral">0</span>%
+                </div>
               </div>
             </div>
           </div>
+
+          <div class="card">
+            <h3 class="section-title">Transactions</h3>
+            <div class="muted">Fees are included in total invested and average buy price.</div>
+            <div id="transactions"></div>
+          </div>
         </div>
 
-        <div class="card">
-          <h3 class="section-title">Transactions</h3>
-          <div class="muted">Fees are included in total invested and average buy price.</div>
-          <div id="transactions"></div>
+        <div class="right-stack">
+          <div class="sentiment-box">
+            <div class="sentiment-label">Price Allocation</div>
+            <div class="sentiment-badge" id="sentimentBadge">Loading</div>
+            <div class="sentiment-details">
+              Current: <strong>£<span id="sentimentCurrent">0</span></strong><br>
+              Average Cost: <strong>£<span id="sentimentAvg">0</span></strong><br>
+              <span id="sentimentDiff" style="color: var(--muted);"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="section-title">BTC Milestones</h3>
+            <div class="milestone-list" id="milestoneList"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="section-title">CAGR / Projection</h3>
+
+            <div class="cagr-grid">
+              <input type="number" id="cagrRate" placeholder="Expected CAGR (%)" value="30" />
+              <input type="number" id="cagrYears" placeholder="Years" value="10" />
+              <input type="number" id="monthlyContribution" placeholder="Monthly Contribution (£)" value="1000" />
+              <input type="number" id="startingOverride" placeholder="Starting Value Override (£) - optional" />
+            </div>
+
+            <div class="cagr-output-grid">
+              <div class="stat-item">Starting Value<strong>£<span id="cagrStartingValue">0</span></strong></div>
+              <div class="stat-item">Projected Value<strong>£<span id="cagrProjectedValue">0</span></strong></div>
+              <div class="stat-item">Total Contributed<strong>£<span id="cagrContributed">0</span></strong></div>
+              <div class="stat-item">Projected Growth<strong>£<span id="cagrGrowth" class="positive">0</span></strong></div>
+            </div>
+
+            <div class="cagr-note">
+              Uses your current portfolio value by default. If you enter a Starting Value Override, that will be used instead.
+              Monthly contributions are assumed to be added monthly and growth is spread monthly from your annual CAGR estimate.
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="right-stack">
-        <div class="sentiment-box">
-          <div class="sentiment-label">Price Allocation</div>
-          <div class="sentiment-badge" id="sentimentBadge">Loading</div>
-          <div class="sentiment-details">
-            Current: <strong>£<span id="sentimentCurrent">0</span></strong><br>
-            Average Cost: <strong>£<span id="sentimentAvg">0</span></strong><br>
-            <span id="sentimentDiff" style="color: var(--muted);"></span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title">BTC Milestones</h3>
-          <div class="milestone-list" id="milestoneList"></div>
-        </div>
-
-        <div class="card">
-          <h3 class="section-title">CAGR / Projection</h3>
-
-          <div class="cagr-grid">
-            <input type="number" id="cagrRate" placeholder="Expected CAGR (%)" value="30" />
-            <input type="number" id="cagrYears" placeholder="Years" value="10" />
-            <input type="number" id="monthlyContribution" placeholder="Monthly Contribution (£)" value="1000" />
-            <input type="number" id="startingOverride" placeholder="Starting Value Override (£) - optional" />
-          </div>
-
-          <div class="cagr-output-grid">
-            <div class="stat-item">Starting Value<br><strong>£<span id="cagrStartingValue">0</span></strong></div>
-            <div class="stat-item">Projected Value<br><strong>£<span id="cagrProjectedValue">0</span></strong></div>
-            <div class="stat-item">Total Contributed<br><strong>£<span id="cagrContributed">0</span></strong></div>
-            <div class="stat-item">Projected Growth<br><strong>£<span id="cagrGrowth" class="positive">0</span></strong></div>
-          </div>
-
-          <div class="cagr-note">
-            Uses your current portfolio value by default. If you enter a Starting Value Override, that will be used instead.
-            Monthly contributions are assumed to be added monthly and growth is spread monthly from your annual CAGR estimate.
-          </div>
+      <div class="card full-width">
+        <h3 class="section-title">Price Chart</h3>
+        <div class="chart-wrap">
+          <canvas id="btcChart"></canvas>
         </div>
       </div>
+
     </div>
-
-    <div class="card full-width">
-      <h3 class="section-title">Price Chart</h3>
-      <div class="chart-wrap">
-        <canvas id="btcChart"></canvas>
-      </div>
-    </div>
-
   </div>
 
   <script>
@@ -916,17 +1176,17 @@
 
       const priceDiff = currentPrice - avgPrice;
       const percentDiff = (priceDiff / avgPrice) * 100;
-      const absMercent = Math.abs(percentDiff);
+      const absPercent = Math.abs(percentDiff);
 
       badge.classList.remove("below", "near", "above");
 
       if (priceDiff < 0) {
         badge.classList.add("below");
-        badge.innerText = "📉 Below Average Cost";
+        badge.innerText = "Below Average Cost";
         diffEl.innerHTML = `<span style="color: #fca5a5;">↓ ${formatPercent(Math.abs(percentDiff))}% below</span>`;
-      } else if (absMercent <= 8) {
+      } else if (absPercent <= 8) {
         badge.classList.add("near");
-        badge.innerText = "⚖️ Near Average Cost";
+        badge.innerText = "Near Average Cost";
         if (priceDiff > 0) {
           diffEl.innerHTML = `<span style="color: #fed7aa;">↑ ${formatPercent(percentDiff)}% above</span>`;
         } else {
@@ -934,7 +1194,7 @@
         }
       } else {
         badge.classList.add("above");
-        badge.innerText = "📈 Above Average Cost";
+        badge.innerText = "Above Average Cost";
         diffEl.innerHTML = `<span style="color: #86efac;">↑ ${formatPercent(percentDiff)}% above</span>`;
       }
     }
@@ -1179,7 +1439,6 @@
       const avgLine = labels.map(() => avgPrice);
       const currentLine = labels.map(() => latestBTCPrice || 0);
 
-      // Create cumulative amounts invested for tooltip context
       let cumulativeInvested = 0;
       let cumulativeBTC = 0;
       const tooltipData = transactions.map(t => {
@@ -1211,8 +1470,8 @@
               backgroundColor: "#f59e0b",
               fill: false,
               tension: 0.3,
-              pointRadius: 7,
-              pointHoverRadius: 9,
+              pointRadius: 6,
+              pointHoverRadius: 8,
               pointBackgroundColor: "#f59e0b",
               pointBorderColor: "#ffffff",
               pointBorderWidth: 2,
@@ -1253,13 +1512,13 @@
             legend: {
               labels: {
                 color: "#f3f4f6",
-                font: { weight: 600, size: 13 },
+                font: { weight: 600, size: 12 },
                 usePointStyle: true,
-                padding: 20
+                padding: 18
               }
             },
             tooltip: {
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              backgroundColor: "rgba(10, 12, 16, 0.92)",
               titleColor: "#fbbf24",
               bodyColor: "#f3f4f6",
               borderColor: "#f59e0b",
@@ -1273,7 +1532,7 @@
                 label: function(context) {
                   const value = context.parsed.y;
                   const label = context.dataset.label;
-                  
+
                   if (context.datasetIndex === 0 && tooltipData[context.dataIndex]) {
                     const data = tooltipData[context.dataIndex];
                     return [
@@ -1285,7 +1544,7 @@
                       `Total BTC: ${formatBTC(data.cumulativeBTC)}`
                     ];
                   }
-                  
+
                   return `${label}: £${formatMoney(value)}`;
                 },
                 afterLabel: function(context) {
@@ -1294,7 +1553,7 @@
                     const buyVal = context.parsed.y;
                     const gainLoss = currentVal - buyVal;
                     const percentChange = buyVal > 0 ? (gainLoss / buyVal) * 100 : 0;
-                    
+
                     if (gainLoss > 0) {
                       return `📈 Gain: £${formatMoney(gainLoss)} (+${formatPercent(percentChange)}%)`;
                     } else if (gainLoss < 0) {
@@ -1307,13 +1566,16 @@
           },
           scales: {
             x: {
-              ticks: { color: "#9ca3af", font: { size: 12 } },
+              ticks: {
+                color: "#9ca3af",
+                font: { size: 11 }
+              },
               grid: { color: "rgba(255,255,255,0.04)" }
             },
             y: {
               ticks: {
                 color: "#9ca3af",
-                font: { size: 12 },
+                font: { size: 11 },
                 callback: function(value) {
                   return "£" + Number(value).toLocaleString("en-GB");
                 }
@@ -1339,6 +1601,5 @@
     getBTCPrice();
     setInterval(getBTCPrice, 30000);
   </script>
-
 </body>
 </html>
